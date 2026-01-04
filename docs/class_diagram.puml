@@ -1,0 +1,138 @@
+@startuml ClassDiagram_AdinLaundry
+' Diagram kelas untuk sistem Adin-Laundry (Bahasa Indonesia)
+skinparam classAttributeIconSize 0
+
+class User {
+  +int id
+  +String username
+  +String email
+  +String passwordHash
+  +String role
+  +login(email, password): bool
+  +logout(): void
+}
+
+class Customer {
+  +String whatsapp
+  +placeOrder(orderData): Order
+  +viewOrders(): List<Order>
+}
+
+class Admin {
+  +manageService(srv): void
+  +manageOrder(ord): void
+}
+
+class Owner {
+  +viewReport(): Report
+  +manageSettings(): void
+}
+
+class Courier {
+  +String vehicle
+  +acceptAssignment(assign): void
+  +updateStatus(orderId, status): void
+}
+
+User <|-- Customer
+User <|-- Admin
+User <|-- Owner
+User <|-- Courier
+
+class Service {
+  +int id
+  +String name
+  +String description
+  +float price
+  +updatePrice(newPrice): void
+}
+
+class Order {
+  +int id
+  +DateTime createdAt
+  +float totalPrice
+  +String status
+  +addItem(item): void
+  +calculateTotal(): float
+  +changeStatus(s): void
+}
+
+class OrderItem {
+  +int id
+  +int quantity
+  +float price
+  +getSubtotal(): float
+}
+
+class Payment {
+  +int id
+  +float amount
+  +String method
+  +String status
+  +processPayment(): bool
+}
+
+class Promotion {
+  +int id
+  +String code
+  +float discountPercent
+  +Date start
+  +Date end
+  +apply(order): float
+}
+
+class CourierAssignment {
+  +int id
+  +Date assignedAt
+  +String status
+}
+
+class NotificationService {
+  +sendEmail(to, subject, body): void
+  +sendWhatsApp(to, message): void
+}
+
+class Settings {
+  +get(key): String
+  +set(key, value): void
+}
+
+' Repository / DAO interfaces
+interface UserRepository {
+  +findByEmail(email): User
+  +save(user): void
+}
+
+interface OrderRepository {
+  +findById(id): Order
+  +save(order): void
+}
+
+interface ServiceRepository {
+  +findAll(): List<Service>
+  +save(service): void
+}
+
+' Relasi / Associations
+Customer "1" -- "0..*" Order : places
+Order "1" -- "1..*" OrderItem : contains
+OrderItem "*" -- "1" Service : refers
+Order "1" -- "0..1" Payment : has
+Order "0..1" -- "0..1" CourierAssignment : assigned
+CourierAssignment "*" -- "1" Courier : assigned_to
+Promotion "0..*" -- "1..*" Service : applies_to
+Admin "1" ..> ServiceRepository : uses
+Admin "1" ..> OrderRepository : uses
+Owner "1" ..> Settings : manages
+NotificationService ..> Customer : notifies
+
+' Repositories implementations
+UserRepository <|.. UserRepositoryImpl
+OrderRepository <|.. OrderRepositoryImpl
+ServiceRepository <|.. ServiceRepositoryImpl
+
+class UserRepositoryImpl
+class OrderRepositoryImpl
+class ServiceRepositoryImpl
+
+@enduml

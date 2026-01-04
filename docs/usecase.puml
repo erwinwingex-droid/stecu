@@ -1,0 +1,83 @@
+@startuml UseCase_AdinLaundry
+left to right direction
+skinparam packageStyle rectangle
+
+actor Pelanggan as Customer
+actor Admin
+actor Pemilik as Owner
+actor Kurir as Courier
+
+rectangle "Sistem Adin-Laundry" {
+
+  (Registrasi) as UC_Register
+  (Masuk) as UC_Login
+  (Lihat Layanan) as UC_Browse
+  (Lihat Promosi) as UC_Promotions
+  (Buat Pesanan) as UC_PlaceOrder
+  (API Buat Pesanan) as UC_CreateOrder
+  (Pembayaran) as UC_Payment
+  (Lihat Status Pesanan) as UC_OrderStatus
+  (Unduh Struk) as UC_Receipt
+  (Berikan Umpan Balik) as UC_Feedback
+
+  (Kelola Layanan) as UC_ManageServices
+  (Kelola Harga) as UC_ManagePricing
+  (Kelola Pesanan) as UC_ManageOrders
+  (Kelola Kurir) as UC_ManageCouriers
+  (Kelola Pelanggan) as UC_ManageCustomers
+  (Lihat Laporan) as UC_Reports
+  (Tanggapi Umpan Balik) as UC_RespondFeedback
+  (Kelola Pengaturan) as UC_Settings
+
+  (Lihat Dasbor) as UC_Dashboard
+  (Lihat Pesanan Ditugaskan) as UC_AssignedOrders
+  (Perbarui Status Pesanan) as UC_UpdateStatus
+  (Konfirmasi Pengiriman) as UC_ConfirmDelivery
+}
+
+' Alur Pelanggan
+Pelanggan --> UC_Register
+Pelanggan --> UC_Login
+Pelanggan --> UC_Browse
+Pelanggan --> UC_Promotions
+Pelanggan --> UC_PlaceOrder
+Pelanggan --> UC_Payment
+Pelanggan --> UC_OrderStatus
+Pelanggan --> UC_Receipt
+Pelanggan --> UC_Feedback
+
+' Alur Admin
+Admin --> UC_Login
+Admin --> UC_ManageServices
+Admin --> UC_ManagePricing
+Admin --> UC_ManageOrders
+Admin --> UC_ManageCouriers
+Admin --> UC_ManageCustomers
+Admin --> UC_Reports
+Admin --> UC_RespondFeedback
+
+' Alur Pemilik
+Pemilik --> UC_Login
+Pemilik --> UC_Dashboard
+Pemilik --> UC_Reports
+Pemilik --> UC_Settings
+
+' Alur Kurir
+Kurir --> UC_Login
+Kurir --> UC_AssignedOrders
+Kurir --> UC_UpdateStatus
+Kurir --> UC_ConfirmDelivery
+
+' Relasi / includes
+UC_PlaceOrder ..> UC_CreateOrder : <<include>>
+UC_Payment ..> UC_CreateOrder : <<include>>
+UC_Browse ..> UC_Promotions : <<extend>>
+UC_OrderStatus ..> UC_CreateOrder : <<uses>>
+
+note right of UC_Dashboard
+  Dasbor Pemilik dan Admin menampilkan ringkasan statistik,
+  pesanan terbaru, dan grafik.
+  (Render file .puml untuk melihat diagram.)
+end note
+
+@enduml

@@ -1,0 +1,61 @@
+@startuml Sequence_Order_AdinLaundry
+' Sequence diagram - Alur pembuatan pesanan sampai pengiriman (Bahasa Indonesia)
+actor Pelanggan
+participant WebApp as "Aplikasi Web"
+participant OrderService as "OrderService"
+participant DB as "Database"
+participant PaymentGateway as "PaymentGateway"
+participant Admin
+participant Kurir
+participant Notification as "NotificationService"
+
+== Pelanggan buat pesanan ==
+Pelanggan -> WebApp: Submit pesanan (form)
+WebApp -> OrderService: createOrder(data)
+OrderService -> DB: insert order (status: pending)
+DB --> OrderService: orderId
+OrderService --> WebApp: orderCreated(orderId)
+WebApp -> Pelanggan: Tampilkan konfirmasi (orderId)
+
+== Cek kebutuhan pembayaran ==
+WebApp -> OrderService: isPaymentRequired(orderId)
+OrderService --> WebApp: yes/no
+
+alt Jika perlu pembayaran
+    WebApp -> PaymentGateway: requestPayment(orderId, amount)
+    PaymentGateway --> WebApp: paymentRedirect / status
+    note right of PaymentGateway: Pelanggan menyelesaikan pembayaran di gateway
+    WebApp -> PaymentGateway: pollPaymentStatus(orderId)
+    PaymentGateway --> WebApp: paymentResult(success)
+    alt Pembayaran berhasil
+        WebApp -> OrderService: confirmPayment(orderId)
+        OrderService -> DB: update order status = paid
+        OrderService -> Admin: notifNewOrder(orderId)
+    else Pembayaran gagal
+        WebApp -> OrderService: markFailed(orderId)
+        OrderService -> DB: update order status = failed
+        OrderService -> Notification: notifyCustomer("Pembayaran gagal")
+        WebApp -> Pelanggan: Tampilkan pesan "Pembayaran gagal"
+    end
+else Jika tidak perlu pembayaran
+    WebApp -> OrderService: markPaid(orderId)
+end
+
+== Proses oleh Admin ==
+Admin -> OrderService: reviewOrder(orderId)
+Admin -> OrderService: assignCourier(orderId)
+OrderService -> DB: update order courier_id, status = assigned
+OrderService -> Notification: notifyCustomer("Order ditugaskan ke kurir")
+OrderService -> Kurir: sendAssignment(orderId, pickupAddress)
+
+== Kurir pickup & delivery ==
+Kurir -> OrderService: updateStatus(orderId, picked_up)
+OrderService -> DB: update status
+Kurir -> OrderService: updateStatus(orderId, in_transit)
+Kurir -> OrderService: updateStatus(orderId, delivered)
+OrderService -> DB: update status = completed
+OrderService -> Notification: notifyCustomer("Order telah dikirim")
+
+== Selesai ==
+Notification -> Pelanggan: kirim notifikasi (WA / Email)
+@enduml

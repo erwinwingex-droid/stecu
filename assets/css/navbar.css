@@ -1,0 +1,160 @@
+/* ===== Navbar Styling Adin Laundry ===== */
+.main-header {
+  position: fixed;              /* Tetap di atas */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 9999;                /* Pastikan tidak tertutup elemen lain */
+  background-color: #0d1b2a;    /* Warna asli tetap */
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  padding: 27px 0;
+  box-sizing: border-box;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Tambahan bayangan lembut saat scroll (opsional) */
+.main-header.scrolled {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Agar konten halaman tidak tertutup oleh header */
+body {
+  margin: 0;
+  padding-top: 150px; /* Sesuaikan tinggi header kamu */
+  font-family: 'Poppins', sans-serif;
+  background-color: #f9f9f9;
+}
+
+/* ===== Struktur utama: kiri logo, kanan isi ===== */
+.header-container {
+  width: 92%;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+}
+
+/* ===== Logo kiri ===== */
+.header-left {
+  flex: 0 0 auto;
+  padding-left: 25px;
+}
+
+.header-left .logo {
+  height: 120px;
+}
+
+/* ===== Kanan (dua baris) ===== */
+.header-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding-left: 150px;
+}
+
+/* ===== Baris atas: kontak & sosmed ===== */
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.contact-info {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.contact-info i {
+  margin-right: 6px;
+  color: #f5a623;
+}
+
+.contact-info span {
+  margin-right: 25px;
+}
+
+.social-icons a {
+  color: #ffffff;
+  font-size: 16px;
+  margin-right: 12px;
+  transition: 0.3s;
+}
+
+.social-icons a:hover {
+  color: #f5a623;
+}
+
+/* ===== Baris bawah: menu dan login ===== */
+.header-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.menu {
+  list-style: none;
+  display: flex;
+  gap: 45px;
+  margin: 0;
+  padding: 0;
+}
+
+.menu li a {
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 25px;
+  transition: 0.3s;
+}
+
+.menu li a:hover {
+  color: #f5a623;
+}
+
+/* ===== Tombol login ===== */
+.btn-login {
+  background-color: #f5a623;
+  color: #000;
+  padding: 10px 25px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.btn-login:hover {
+  background-color: #ffaa33;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    text-align: center;
+    padding: 0;
+  }
+
+  .header-top, .header-bottom {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .header-left .logo {
+    height: 70px;
+    margin-bottom: 10px;
+  }
+
+  .menu {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .header-right {
+    padding-left: 0;
+  }
+}

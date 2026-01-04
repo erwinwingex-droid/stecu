@@ -1,0 +1,24 @@
+{
+    "name": "Adin Laundry",
+    "short_name": "AdinLaundry",
+    "description": "Layanan Laundry Terpercaya - Cuci, Setrika, dan Layanan Khusus",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3498db",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/assets/images/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/images/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "categories": ["business", "shopping"],
+    "lang": "id-ID"
+}

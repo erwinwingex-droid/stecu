@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    id="Definitions_AdinLaundry"
+    targetNamespace="http://adin-laundry.local/bpmn">
+
+  <bpmn2:process id="Process_Order_Flow" isExecutable="true">
+
+    <!-- Start -->
+    <bpmn2:startEvent id="StartEvent_OrderCreated" name="Mulai - Pesanan Dibuat">
+      <bpmn2:outgoing>Flow_CreateOrder_to_CheckPayment</bpmn2:outgoing>
+    </bpmn2:startEvent>
+
+    <!-- Create order (user action / API) -->
+    <bpmn2:userTask id="Task_CreateOrder" name="Buat Pesanan (API/User)">
+      <bpmn2:incoming>Flow_CreateOrder_to_CheckPayment</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_CheckPayment_to_PaymentGateway</bpmn2:outgoing>
+      <bpmn2:outgoing>Flow_CheckPayment_to_AssignCourier</bpmn2:outgoing>
+    </bpmn2:userTask>
+
+    <!-- Gateway: butuh pembayaran? -->
+    <bpmn2:exclusiveGateway id="Gateway_PaymentRequired" name="Pembayaran Dibutuhkan?">
+      <bpmn2:incoming>Flow_CheckPayment_to_PaymentGateway</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_PaymentRequired_yes</bpmn2:outgoing>
+      <bpmn2:outgoing>Flow_PaymentRequired_no</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+
+    <!-- Payment service (gateway/process) -->
+    <bpmn2:serviceTask id="Task_ProcessPayment" name="Proses Pembayaran" implementation="##WebService">
+      <bpmn2:incoming>Flow_PaymentRequired_yes</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_PaymentResult_to_Gateway</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+
+    <!-- Gateway: pembayaran berhasil? -->
+    <bpmn2:exclusiveGateway id="Gateway_PaymentOK" name="Pembayaran Berhasil?">
+      <bpmn2:incoming>Flow_PaymentResult_to_Gateway</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_PaymentOK_yes</bpmn2:outgoing>
+      <bpmn2:outgoing>Flow_PaymentOK_no</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+
+    <!-- Assign courier -->
+    <bpmn2:userTask id="Task_AssignCourier" name="Tugaskan Kurir">
+      <bpmn2:incoming>Flow_PaymentOK_yes</bpmn2:incoming>
+      <bpmn2:incoming>Flow_PaymentRequired_no</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_AssignCourier_to_Pickup</bpmn2:outgoing>
+    </bpmn2:userTask>
+
+    <!-- Kurir pickup/delivery -->
+    <bpmn2:userTask id="Task_PickupAndDeliver" name="Ambil & Kirim (Kurir)">
+      <bpmn2:incoming>Flow_AssignCourier_to_Pickup</bpmn2:incoming>
+      <bpmn2:outgoing>Flow_Pickup_to_Complete</bpmn2:outgoing>
+    </bpmn2:userTask>
+
+    <!-- Complete order -->
+    <bpmn2:endEvent id="EndEvent_OrderCompleted" name="Pesanan Selesai">
+      <bpmn2:incoming>Flow_Pickup_to_Complete</bpmn2:incoming>
+    </bpmn2:endEvent>
+
+    <!-- Payment failed / cancel -->
+    <bpmn2:endEvent id="EndEvent_PaymentFailed" name="Pembayaran Gagal / Batal">
+      <bpmn2:incoming>Flow_PaymentOK_no</bpmn2:incoming>
+    </bpmn2:endEvent>
+
+    <!-- Sequence Flows -->
+    <bpmn2:sequenceFlow id="Flow_CreateOrder_to_CheckPayment" sourceRef="StartEvent_OrderCreated" targetRef="Task_CreateOrder"/>
+
+    <bpmn2:sequenceFlow id="Flow_CheckPayment_to_PaymentGateway" sourceRef="Task_CreateOrder" targetRef="Gateway_PaymentRequired"/>
+
+    <bpmn2:sequenceFlow id="Flow_PaymentRequired_yes" name="Ya" sourceRef="Gateway_PaymentRequired" targetRef="Task_ProcessPayment"/>
+    <bpmn2:sequenceFlow id="Flow_PaymentRequired_no" name="Tidak" sourceRef="Gateway_PaymentRequired" targetRef="Task_AssignCourier"/>
+
+    <bpmn2:sequenceFlow id="Flow_PaymentResult_to_Gateway" sourceRef="Task_ProcessPayment" targetRef="Gateway_PaymentOK"/>
+
+    <bpmn2:sequenceFlow id="Flow_PaymentOK_yes" name="Lunas" sourceRef="Gateway_PaymentOK" targetRef="Task_AssignCourier"/>
+    <bpmn2:sequenceFlow id="Flow_PaymentOK_no" name="Gagal" sourceRef="Gateway_PaymentOK" targetRef="EndEvent_PaymentFailed"/>
+
+    <bpmn2:sequenceFlow id="Flow_AssignCourier_to_Pickup" sourceRef="Task_AssignCourier" targetRef="Task_PickupAndDeliver"/>
+
+    <bpmn2:sequenceFlow id="Flow_Pickup_to_Complete" sourceRef="Task_PickupAndDeliver" targetRef="EndEvent_OrderCompleted"/>
+
+  </bpmn2:process>
+
+  <!-- BPMN diagram (visual hints) -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Order">
+    <bpmndi:BPMNPlane id="BPMNPlane_Order" bpmnElement="Process_Order_Flow">
+
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="StartEvent_OrderCreated">
+        <dc:Bounds x="100" y="120" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_CreateOrder" bpmnElement="Task_CreateOrder">
+        <dc:Bounds x="160" y="110" width="120" height="50"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Gateway1" bpmnElement="Gateway_PaymentRequired" isMarkerVisible="true">
+        <dc:Bounds x="300" y="115" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_ProcessPayment" bpmnElement="Task_ProcessPayment">
+        <dc:Bounds x="380" y="80" width="120" height="50"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Gateway2" bpmnElement="Gateway_PaymentOK">
+        <dc:Bounds x="520" y="95" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_AssignCourier" bpmnElement="Task_AssignCourier">
+        <dc:Bounds x="600" y="110" width="120" height="50"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMShape id="Shape_Pickup" bpmnElement="Task_PickupAndDeliver">
+        <dc:Bounds x="760" y="110" width="140" height="50"/>
+      </bpmndi:BPMShape>
+
+      <bpmndi:BPMNShape id="Shape_EndComplete" bpmnElement="EndEvent_OrderCompleted">
+        <dc:Bounds x="920" y="120" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_EndFailed" bpmnElement="EndEvent_PaymentFailed">
+        <dc:Bounds x="600" y="10" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+
+      <!-- Flows (visual) -->
+      <bpmndi:BPMNEdge id="Edge_1" bpmnElement="Flow_CreateOrder_to_CheckPayment">
+        <di:waypoint x="136" y="138"/>
+        <di:waypoint x="160" y="135"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_2" bpmnElement="Flow_CheckPayment_to_PaymentGateway">
+        <di:waypoint x="280" y="135"/>
+        <di:waypoint x="300" y="140"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_3" bpmnElement="Flow_PaymentRequired_yes">
+        <di:waypoint x="325" y="120"/>
+        <di:waypoint x="380" y="105"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_4" bpmnElement="Flow_PaymentResult_to_Gateway">
+        <di:waypoint x="500" y="105"/>
+        <di:waypoint x="520" y="120"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_5" bpmnElement="Flow_PaymentOK_yes">
+        <di:waypoint x="545" y="120"/>
+        <di:waypoint x="600" y="135"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_6" bpmnElement="Flow_AssignCourier_to_Pickup">
+        <di:waypoint x="720" y="135"/>
+        <di:waypoint x="760" y="135"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_7" bpmnElement="Flow_Pickup_to_Complete">
+        <di:waypoint x="900" y="135"/>
+        <di:waypoint x="920" y="138"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_8" bpmnElement="Flow_PaymentRequired_no">
+        <di:waypoint x="325" y="150"/>
+        <di:waypoint x="600" y="150"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_9" bpmnElement="Flow_PaymentOK_no">
+        <di:waypoint x="545" y="80"/>
+        <di:waypoint x="618" y="28"/>
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn2:definitions>
